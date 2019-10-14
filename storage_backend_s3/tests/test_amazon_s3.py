@@ -41,3 +41,10 @@ class AmazonS3Case(VCRMixin, Common, GenericStoreCase):
                 ),
             }
         )
+
+    def test_params(self):
+        params = self.backend._get_aws_session_params()
+        self.assertNotIn('endpoint_url', params)
+        self.backend.aws_host = 'another.s3.endpoint.com'
+        params = self.backend._get_aws_session_params()
+        self.assertEqual(params['endpoint_url'], 'another.s3.endpoint.com')

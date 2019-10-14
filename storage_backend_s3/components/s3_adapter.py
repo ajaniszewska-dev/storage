@@ -19,12 +19,18 @@ class S3StorageBackend(Component):
     _inherit = "base.storage.adapter"
     _usage = "amazon_s3"
 
+    def _get_aws_session_params(self):
+        params = {
+            'aws_access_key_id': self.collection.aws_access_key_id,
+            'aws_secret_access_key': self.collection.aws_secret_access_key,
+            'region_name': self.collection.aws_region,
+        }
+        if self.collection.aws_host:
+            params['endpoint_url'] = self.collection.aws_host
+        return params
+
     def _get_resource(self):
-        return boto3.Session(
-            aws_access_key_id=self.collection.aws_access_key_id,
-            aws_secret_access_key=self.collection.aws_secret_access_key,
-            region_name=self.collection.aws_region,
-        ).resource("s3")
+        return boto3.Session(**self._get_aws_session_params()).resource("s3")
 
     def _get_object(self, relative_path):
         s3 = self._get_resource()

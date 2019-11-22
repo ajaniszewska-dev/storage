@@ -146,9 +146,11 @@ class StorageFile(models.Model):
                     base_url, record._slugify_name_with_id()
                 )
             else:
-                record.url = "{}/{}".format(
-                    record.backend_id.base_url, record.relative_path
-                )
+                parts = [record.backend_id.base_url]
+                if record.backend_id.directory_path:
+                    parts.append(record.backend_id.directory_path)
+                parts.append(record.relative_path)
+                record.url = "/".join(parts)
 
     @api.depends("name")
     def _compute_extract_filename(self):

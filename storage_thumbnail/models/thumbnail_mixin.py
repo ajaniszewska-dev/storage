@@ -23,14 +23,33 @@ class ThumbnailMixing(models.AbstractModel):
         inverse_name="res_id",
         domain=lambda self: [("res_model", "=", self._name)],
     )
-    image_medium_url = fields.Char(readonly=True)
-    image_small_url = fields.Char(readonly=True)
+    image_medium_url = fields.Char(
+        compute=lambda self: self._compute_thumb_url("medium")
+    )
+    image_small_url = fields.Char(compute=lambda self: self._compute_thumb_url("small"))
+
+    _image_scale_mapping = {
+        "medium": (128, 128),
+        "small": (64, 64),
+    }
+
+    def _compute_thumb_url(self, scale):
+        fname = "image_{}_url".format(scale)
+        size_x, size_y = self._image_scale_mapping[scale]
+        for rec in self:
+            rec[fname] = self._get_thumb(scale).url
+
+    def _get_thumb(self, scale):
+        size_x, size_y = self._image_scale_mapping[scale]
+        return self.thumbnail_ids.filtered(
+            lambda x: x.size_x == size_x and x.size_y == size_y
+        )
 
     def _get_medium_thumbnail(self):
-        return self.get_or_create_thumbnail(128, 128)
+        return self.get_or_create_thumbnail(*self._image_scale_mapping["medium"])
 
     def _get_small_thumbnail(self):
-        return self.get_or_create_thumbnail(64, 64)
+        return self.get_or_create_thumbnail(*self._image_scale_mapping["small"])
 
     def get_or_create_thumbnail(self, size_x, size_y, url_key=None):
         self.ensure_one()
@@ -58,12 +77,8 @@ class ThumbnailMixing(models.AbstractModel):
 
     def generate_odoo_thumbnail(self):
         self_sudo = self.sudo()
-        self.write(
-            {
-                "image_medium_url": self_sudo._get_medium_thumbnail().url,
-                "image_small_url": self_sudo._get_small_thumbnail().url,
-            }
-        )
+        self_sudo._get_small_thumbnail()
+        self_sudo._get_medium_thumbnail()
         return True
 
     @api.model

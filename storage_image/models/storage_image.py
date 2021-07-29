@@ -45,12 +45,7 @@ class StorageImage(models.Model):
         vals["file_type"] = self._default_file_type
         if "backend_id" not in vals:
             vals["backend_id"] = self._get_default_backend_id()
-        # When using the widget image_url, the create will pass the data
-        # in the "url" field. We map it to the data field
-        for key in ["image_medium_url", "image_small_url"]:
-            if key in vals:
-                vals["data"] = vals.pop(key)
-        image = super(StorageImage, self).create(vals)
+        image = super().create(vals)
         return image
 
     def _get_default_backend_id(self):
@@ -61,7 +56,4 @@ class StorageImage(models.Model):
     def unlink(self):
         files = self.mapped("file_id")
         thumbnails = self.mapped("thumbnail_ids")
-        super(StorageImage, self).unlink()
-        thumbnails.unlink()
-        files.unlink()
-        return True
+        return super().unlink() and thumbnails.unlink() and files.unlink()

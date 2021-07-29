@@ -25,8 +25,16 @@ class ProductImageRelation(models.Model):
         string="Available Attributes",
         compute="_compute_available_attribute",
     )
-    product_tmpl_id = fields.Many2one("product.template")
-    tag_id = fields.Many2one("image.tag", domain=[("apply_on", "=", "product")])
+    product_tmpl_id = fields.Many2one(
+        "product.template",
+        required=True,
+        ondelete="cascade",
+    )
+    tag_id = fields.Many2one(
+        "image.tag",
+        string="Tag",
+        domain=[("apply_on", "=", "product")],
+    )
 
     @api.depends("image_id", "product_tmpl_id.attribute_line_ids.value_ids")
     def _compute_available_attribute(self):

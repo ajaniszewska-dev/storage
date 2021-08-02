@@ -1,6 +1,6 @@
 # Copyright 2017 Akretion (http://www.akretion.com).
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 import base64
 import hashlib
@@ -140,10 +140,7 @@ class StorageFile(models.Model):
             else:
                 rec.data = None
 
-    @api.depends(
-        "relative_path",
-        "backend_id.base_url_for_files",
-    )
+    @api.depends("relative_path", "backend_id")
     def _compute_url(self):
         for record in self:
             record.url = record._get_url()

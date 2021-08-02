@@ -1,6 +1,6 @@
 # Copyright 2017 Akretion (http://www.akretion.com).
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 import base64
 import logging
@@ -19,8 +19,8 @@ class StorageThumbnail(models.Model):
     _inherits = {"storage.file": "file_id"}
     _default_file_type = "thumbnail"
 
-    size_x = fields.Integer("weight")
-    size_y = fields.Integer("height")
+    size_x = fields.Integer("X size")
+    size_y = fields.Integer("Y size")
     url_key = fields.Char(
         "Url key", help="Specific URL key for generating the url of the image"
     )

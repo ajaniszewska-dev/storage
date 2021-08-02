@@ -1,13 +1,8 @@
 # Copyright 2018 Akretion (http://www.akretion.com).
 # @author Raphaël Reverdy <https://github.com/hparfr>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-
-
-import logging
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 from odoo import api, fields, models
-
-_logger = logging.getLogger(__name__)
 
 
 class ProductImageRelation(models.Model):
@@ -25,8 +20,16 @@ class ProductImageRelation(models.Model):
         string="Available Attributes",
         compute="_compute_available_attribute",
     )
-    product_tmpl_id = fields.Many2one("product.template")
-    tag_id = fields.Many2one("image.tag", domain=[("apply_on", "=", "product")])
+    product_tmpl_id = fields.Many2one(
+        "product.template",
+        required=True,
+        ondelete="cascade",
+    )
+    tag_id = fields.Many2one(
+        "image.tag",
+        string="Tag",
+        domain=[("apply_on", "=", "product")],
+    )
 
     @api.depends("image_id", "product_tmpl_id.attribute_line_ids.value_ids")
     def _compute_available_attribute(self):
@@ -35,3 +38,9 @@ class ProductImageRelation(models.Model):
             rec.available_attribute_value_ids = rec.product_tmpl_id.mapped(
                 "attribute_line_ids.value_ids"
             )
+
+    def _match_variant(self, variant):
+        variant_attribute_values = variant.mapped(
+            "product_template_attribute_value_ids.product_attribute_value_id"
+        )
+        return not bool(self.attribute_value_ids - variant_attribute_values)

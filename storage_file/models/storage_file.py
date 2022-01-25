@@ -178,7 +178,8 @@ class StorageFile(models.Model):
         )
         ids = [x[0] for x in self._cr.fetchall()]
         for st_file in self.browse(ids):
-            st_file.backend_id.sudo().delete(st_file.relative_path)
+            if st_file.relative_path:
+                st_file.backend_id.sudo().delete(st_file.relative_path)
             st_file.with_context(cleanning_storage_file=True).unlink()
             # commit is required since the backend could be an external system
             # therefore, if the record is deleted on the external system

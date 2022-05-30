@@ -21,10 +21,6 @@ except ImportError as err:  # pragma: no cover
     _logger.debug(err)
 
 
-# Keep track of existing buckets and avoid checking for them every time.
-EXISTING_BUCKETS = []
-
-
 class S3StorageAdapter(Component):
     _name = "s3.adapter"
     _inherit = "base.storage.adapter"
@@ -60,19 +56,19 @@ class S3StorageAdapter(Component):
         else:
             create_params = self._get_create_bucket_params(bucket_name, params)
             bucket = s3.create_bucket(**create_params)
+            self.collection.s3_bucket_exists = True
         return bucket
 
-    def _check_bucket_exists(self, s3, bucket_name):
-        if bucket_name in EXISTING_BUCKETS:
-            # If the bucket is not available later
-            # we'll have an error on each call of course
-            # but that does not happen often
-            # and in any case you will get what's wrong soon.
+    def _check_bucket_exists(self, s3, bucket_name, force=False):
+        if self.env.context.get("force_s3_check"):
+            force = True
+        if force is False and self.collection.s3_bucket_exists:
             return True
+        # if test is ok, set the flag
         try:
             s3.meta.client.head_bucket(Bucket=bucket_name)
             # The call above is expensive, avoid it when possible.
-            EXISTING_BUCKETS.append(bucket_name)
+            self.collection.s3_bucket_exists = True
             return True
         except ClientError as e:
             # If a client error is thrown, then check that it was a 404 error.

@@ -43,6 +43,7 @@ class StorageBackend(models.Model):
         "eg: Exoscale",
     )
     aws_bucket = fields.Char(string="Bucket")
+    s3_bucket_exists = fields.Boolean(string="Bucket exists")
     aws_access_key_id = fields.Char(string="Access Key ID")
     aws_secret_access_key = fields.Char(string="Secret Access Key")
     aws_region = fields.Selection(selection="_selection_aws_region", string="Region")
@@ -84,3 +85,7 @@ class StorageBackend(models.Model):
             + AWS_REGIONS
             + [("other", "Empty or Other (Manually specify below)")]
         )
+
+    def action_ensure_bucket_exists(self):
+        adapter = self._get_adapter()
+        adapter._get_bucket()

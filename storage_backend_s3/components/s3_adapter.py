@@ -57,7 +57,7 @@ class S3StorageAdapter(Component):
         else:
             create_params = self._get_create_bucket_params(bucket_name, params)
             bucket = s3.create_bucket(**create_params)
-            self.collection.s3_bucket_exists = True
+            self.collection.validated = True
         return bucket
 
     def _check_bucket_exists(self, s3, bucket_name, force=False):
@@ -67,7 +67,7 @@ class S3StorageAdapter(Component):
         try:
             s3.meta.client.head_bucket(Bucket=bucket_name)
             # The call above is expensive, avoid it when possible.
-            self.collection.s3_bucket_exists = True
+            self.collection.validated = True
             return True
         except ClientError as e:
             # If a client error is thrown, then check that it was a 404 error.

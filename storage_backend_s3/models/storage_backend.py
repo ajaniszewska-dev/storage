@@ -6,7 +6,7 @@
 
 import logging
 
-from odoo import _, fields, models
+from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -43,7 +43,6 @@ class StorageBackend(models.Model):
         "eg: Exoscale",
     )
     aws_bucket = fields.Char(string="Bucket")
-    validated = fields.Boolean(string="Bucket exists", compute="_compute_s3_validated")
     aws_access_key_id = fields.Char(string="Access Key ID")
     aws_secret_access_key = fields.Char(string="Secret Access Key")
     aws_region = fields.Selection(selection="_selection_aws_region", string="Region")
@@ -61,12 +60,6 @@ class StorageBackend(models.Model):
             ("bucket-owner-full-control", "bucket-owner-full-control"),
         ]
     )
-
-    def _compute_s3_validated(self):
-        for rec in self:
-            if rec.backend_type == "amazon_s3":
-                adapter = self._get_adapter()
-                rec.validated = hasattr(adapter, "validate_config")
 
     @property
     def _server_env_fields(self):
@@ -91,27 +84,3 @@ class StorageBackend(models.Model):
             + AWS_REGIONS
             + [("other", "Empty or Other (Manually specify below)")]
         )
-
-    def action_test_config(self):
-        if not self.validated:
-            raise AttributeError("Validation not supported!")
-        adapter = self._get_adapter()
-        try:
-            adapter.validate_config()
-            title = _("Connection Test Succeeded!")
-            message = _("Everything seems properly set up!")
-            msg_type = "success"
-        except Exception as err:
-            title = _("Connection Test Failed!")
-            message = str(err)
-            msg_type = "danger"
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": title,
-                "message": message,
-                "type": msg_type,
-                "sticky": False,
-            },
-        }

@@ -68,11 +68,12 @@ class StorageBackend(models.Model):
         help="Relative path to the directory to store the file"
     )
     has_validation = fields.Boolean(compute="_compute_has_validation")
-
+    validated = fields.Boolean(string="Validated",compute="_compute_has_validation")
+    
     def _compute_has_validation(self):
         for rec in self:
             adapter = self._get_adapter()
-            rec.has_validation = hasattr(adapter, "validate_config")
+            rec.validated = rec.has_validation = hasattr(adapter, "validate_config")
 
     @property
     def _server_env_fields(self):

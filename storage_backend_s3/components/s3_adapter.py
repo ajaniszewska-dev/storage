@@ -46,6 +46,7 @@ class S3StorageAdapter(Component):
         s3 = boto3.resource("s3", **params)
         bucket_name = self.collection.aws_bucket
         bucket = self._get_or_create_bucket(s3, bucket_name, **params)
+        self.collection.validated = True
         return bucket
 
     def _get_or_create_bucket(self, s3, bucket_name, **params):
@@ -60,9 +61,7 @@ class S3StorageAdapter(Component):
         return bucket
 
     def _check_bucket_exists(self, s3, bucket_name, force=False):
-        if self.env.context.get("force_s3_check"):
-            force = True
-        if force is False and self.collection.s3_bucket_exists:
+        if force is False and self.collection.validated:
             return True
         # if test is ok, set the flag
         try:
@@ -142,3 +141,8 @@ class S3StorageAdapter(Component):
     def delete(self, relative_path):
         s3object = self._get_object(relative_path)
         s3object.delete()
+
+    def validate_config(self, **params):
+        s3 = boto3.resource("s3", **params)
+        bucket_name = self.collection.aws_bucket
+        self.validated = self._check_bucket_exists(s3, bucket_name)
